@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"go-gin-gorm-example/infrastructure/config"
 	"net/http"
 
 	"go-gin-gorm-example/boot"
@@ -38,7 +39,15 @@ func methodNotAllowedHandler(c *gin.Context) {
 func (hr *HandlerRouter) RouterWithMiddleware() *gin.Engine {
 	//add new instance for bun router and add not found handler
 	//and method with not allowed handler
-	c := gin.Default()
+	c := gin.New()
+
+	//use recovery
+	c.Use(gin.Recovery())
+
+	//if logMode is true set logger to stdout on gin
+	if config.Conf.LogMode {
+		c.Use(gin.Logger())
+	}
 
 	//set middleware to use not found handler
 	c.NoRoute(notFoundHandler)
