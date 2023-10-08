@@ -3,8 +3,8 @@ package health
 import (
 	"context"
 	"errors"
-	"go-gin-gorm-example/infrastructure/config"
 
+	"go-gin-gorm-example/infrastructure/config"
 	logger "go-gin-gorm-example/infrastructure/log"
 	"go-gin-gorm-example/module/primitive"
 
@@ -35,27 +35,26 @@ func (u *Service) CheckUpTime(ctx context.Context) (primitive.HealthResp, error)
 		return primitive.HealthResp{}, err
 	}
 
-	if u.redisClient == nil {
-		err := errors.New("redis client doesn't initiate on the boot file")
-		return primitive.HealthResp{}, err
-	}
-
 	errCheckDb := u.repository.CheckUpTimeDB(ctx)
 	if errCheckDb != nil {
 		logger.Error(ctx, ctxName, "got error when %s : %v", ctxName, errCheckDb)
 		return primitive.HealthResp{}, errCheckDb
 	}
 
+	var redisStatus string
 	if config.Conf.Redis.EnableRedis && u.redisClient != nil {
 		errCheckRedis := u.redisClient.Ping().Err()
 		if errCheckRedis != nil {
 			logger.Error(ctx, ctxName, "got error when %s : %v", ctxName, errCheckRedis)
 			return primitive.HealthResp{}, errCheckRedis
 		}
+		redisStatus = "healthy"
+	} else {
+		redisStatus = "not initiated"
 	}
 
 	return primitive.HealthResp{
 		Db:    "healthy",
-		Redis: "healthy",
+		Redis: redisStatus,
 	}, nil
 }
