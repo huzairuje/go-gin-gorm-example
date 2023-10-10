@@ -109,7 +109,7 @@ func (h *Http) CreateArticle(c *gin.Context) {
 
 	var requestBody primitive.ArticleReq
 	// Decode the request body into the Article struct.
-	if err := c.ShouldBind(requestBody); err != nil {
+	if err := c.ShouldBind(&requestBody); err != nil {
 		httplib.SetErrorResponse(c, http.StatusBadRequest, primitive.SomethingWrongWithTheBodyRequest)
 		return
 	}
