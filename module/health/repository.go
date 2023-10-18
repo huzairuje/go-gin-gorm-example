@@ -2,6 +2,7 @@ package health
 
 import (
 	"context"
+	"go-gin-gorm-example/infrastructure/config"
 
 	"gorm.io/gorm"
 )
@@ -21,14 +22,16 @@ func NewRepository(db *gorm.DB) *Repository {
 }
 
 func (r Repository) CheckUpTimeDB(ctx context.Context) (err error) {
-	db, err := r.db.WithContext(ctx).DB()
-	if err != nil {
-		return err
-	}
+	if config.Conf.Postgres.EnablePostgres {
+		db, err := r.db.WithContext(ctx).DB()
+		if err != nil {
+			return err
+		}
 
-	err = db.Ping()
-	if err != nil {
-		return err
+		err = db.Ping()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

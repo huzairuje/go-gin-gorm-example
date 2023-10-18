@@ -50,10 +50,13 @@ func MakeHandler() HandlerSetup {
 	}
 
 	//setup infrastructure postgres
-	db, err := database.NewDatabaseClient(&config.Conf)
-	if err != nil {
-		log.Fatalf("failed initiate database postgres: %v", err)
-		os.Exit(1)
+	var db database.HandlerDatabase
+	if config.Conf.Postgres.EnablePostgres {
+		db, err = database.NewDatabaseClient(&config.Conf)
+		if err != nil {
+			log.Fatalf("failed initiate database postgres: %v", err)
+			os.Exit(1)
+		}
 	}
 
 	//add limiter
