@@ -6,6 +6,7 @@ import (
 	"go-gin-gorm-example/infrastructure/config"
 	"go-gin-gorm-example/infrastructure/database"
 	"go-gin-gorm-example/infrastructure/limiter"
+	"go-gin-gorm-example/infrastructure/listener"
 	logger "go-gin-gorm-example/infrastructure/log"
 	"go-gin-gorm-example/infrastructure/redis"
 	"go-gin-gorm-example/module/article"
@@ -13,7 +14,6 @@ import (
 	"go-gin-gorm-example/utils"
 
 	redisThirdPartyLib "github.com/go-redis/redis"
-	"github.com/gookit/event"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -80,32 +80,16 @@ func MakeHandler() HandlerSetup {
 	articleService := article.NewService(articleRepository, redisLibInterface)
 	articleModule := article.NewHttp(articleService)
 
+	// add listener instance
+	listen := listener.NewListener(articleModule)
+	//add for trigger start up
+	listen.TriggerStartUp()
+	//add listen for shutdown event
+	listen.ListenForShutdownEvent()
+
 	return HandlerSetup{
 		Limiter:     middlewareWithLimiter,
 		HealthHttp:  healthModule,
 		ArticleHttp: articleModule,
-	}
-}
-
-// ListenForShutdownEvent Listen for the shutdown event
-func (h *HandlerSetup) ListenForShutdownEvent() {
-	event.On(utils.ShutDownEvent, event.ListenerFunc(func(e event.Event) error {
-		// TriggerShutdown sends a signal to the repository and performs shutdown actions.
-		h.TriggerShutdown()
-		return nil
-	}))
-}
-
-// TriggerShutdown sends a signal to the repository and performs shutdown actions.
-func (h *HandlerSetup) TriggerShutdown() {
-	if !config.Conf.Postgres.EnablePostgres {
-		h.ArticleHttp.SaveToFile()
-	}
-}
-
-// TriggerStartUp sends a signal to the repository and performs start up actions.
-func (h *HandlerSetup) TriggerStartUp() {
-	if !config.Conf.Postgres.EnablePostgres {
-		h.ArticleHttp.LoadFromFile()
 	}
 }

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/gookit/event"
-	"go-gin-gorm-example/utils"
 	"log"
 	"net/http"
 	"os"
@@ -17,6 +15,9 @@ import (
 	"go-gin-gorm-example/boot"
 	"go-gin-gorm-example/infrastructure/config"
 	"go-gin-gorm-example/router"
+	"go-gin-gorm-example/utils"
+
+	"github.com/gookit/event"
 )
 
 func main() {
@@ -24,15 +25,8 @@ func main() {
 	flag.Parse()
 
 	setup := boot.MakeHandler()
-
-	//set startup
-	setup.TriggerStartUp()
-
 	handlerRouter := router.NewHandlerRouter(setup)
 	app := handlerRouter.RouterWithMiddleware()
-
-	// add listener for shut down event
-	setup.ListenForShutdownEvent()
 
 	port := fmt.Sprintf(":%v", config.Conf.Port)
 	if port == "" {
