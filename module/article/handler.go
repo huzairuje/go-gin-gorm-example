@@ -29,6 +29,8 @@ func NewHttp(serviceHealth InterfaceService) InterfaceHttp {
 
 type InterfaceHttp interface {
 	GroupArticle(group *gin.RouterGroup)
+	SaveToFile()
+	LoadFromFile()
 }
 
 func (h *Http) GroupArticle(g *gin.RouterGroup) {
@@ -162,7 +164,8 @@ func (h *Http) DetailArticle(c *gin.Context) {
 
 	data, err := h.serviceArticle.GetDetailArticle(ctx, int64(idInt64))
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		errNotFound := []error{gorm.ErrRecordNotFound, primitive.ErrorArticleNotFound}
+		if utils.ContainsError(err, errNotFound) {
 			logger.Error(ctx, utils.ErrorLogFormat, err.Error(), logCtx, "h.serviceArticle.GetDetailArticle")
 			httplib.SetErrorResponse(c, http.StatusNotFound, primitive.RecordArticleNotFound)
 			return
@@ -175,4 +178,14 @@ func (h *Http) DetailArticle(c *gin.Context) {
 	httplib.SetSuccessResponse(c, http.StatusOK, primitive.SuccessCreateArticle, data)
 	return
 
+}
+
+func (h *Http) SaveToFile() {
+	ctx := context.Background()
+	h.serviceArticle.RecordArticleToFile(ctx)
+}
+
+func (h *Http) LoadFromFile() {
+	ctx := context.Background()
+	h.serviceArticle.LoadArticleToFile(ctx)
 }

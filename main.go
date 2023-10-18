@@ -5,6 +5,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/gookit/event"
+	"go-gin-gorm-example/utils"
 	"log"
 	"net/http"
 	"os"
@@ -22,8 +24,15 @@ func main() {
 	flag.Parse()
 
 	setup := boot.MakeHandler()
+
+	//set startup
+	setup.TriggerStartUp()
+
 	handlerRouter := router.NewHandlerRouter(setup)
 	app := handlerRouter.RouterWithMiddleware()
+
+	// add listener for shut down event
+	setup.ListenForShutdownEvent()
 
 	port := fmt.Sprintf(":%v", config.Conf.Port)
 	if port == "" {
@@ -52,6 +61,8 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutdown Server ...")
+
+	event.MustFire(utils.ShutDownEvent, nil)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

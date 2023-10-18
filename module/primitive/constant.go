@@ -1,5 +1,7 @@
 package primitive
 
+import "errors"
+
 const (
 	SuccessCreateArticle             = "success record article"
 	SuccessGetArticle                = "success get record article"
@@ -9,4 +11,7 @@ const (
 	ErrorBindBodyRequest             = "error bind body from request"
 	SomethingWrongWithTheBodyRequest = "oops, something wrong with body request, please recheck!"
 	SomethingWentWrong               = "oops, something went wrong!"
+	ErrArticleNotFound               = "article not found"
 )
+
+var ErrorArticleNotFound = errors.New(ErrArticleNotFound)

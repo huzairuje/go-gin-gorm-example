@@ -30,15 +30,21 @@ func NewService(repository RepositoryInterface, redisClient *redis.Client) Inter
 func (u *Service) CheckUpTime(ctx context.Context) (primitive.HealthResp, error) {
 	ctxName := "CheckUpTime"
 
-	if u.repository == nil {
-		err := errors.New("repository doesn't initiate on the boot file")
-		return primitive.HealthResp{}, err
-	}
+	var postgresStatus string
+	if config.Conf.Postgres.EnablePostgres {
+		if u.repository == nil {
+			err := errors.New("repository doesn't initiate on the boot file")
+			return primitive.HealthResp{}, err
+		}
 
-	errCheckDb := u.repository.CheckUpTimeDB(ctx)
-	if errCheckDb != nil {
-		logger.Error(ctx, ctxName, "got error when %s : %v", ctxName, errCheckDb)
-		return primitive.HealthResp{}, errCheckDb
+		errCheckDb := u.repository.CheckUpTimeDB(ctx)
+		if errCheckDb != nil {
+			logger.Error(ctx, ctxName, "got error when %s : %v", ctxName, errCheckDb)
+			return primitive.HealthResp{}, errCheckDb
+		}
+		postgresStatus = "healthy"
+	} else {
+		postgresStatus = "postgres is not enabled"
 	}
 
 	var redisStatus string
@@ -54,7 +60,7 @@ func (u *Service) CheckUpTime(ctx context.Context) (primitive.HealthResp, error)
 	}
 
 	return primitive.HealthResp{
-		Db:    "healthy",
+		Db:    postgresStatus,
 		Redis: redisStatus,
 	}, nil
 }

@@ -109,6 +109,7 @@ type PostgresConfig struct {
 	DBName             string `mapstructure:"dbName"`
 	User               string `mapstructure:"user"`
 	Password           string `mapstructure:"password"`
+	EnablePostgres     bool   `mapstructure:"enablePostgres"`
 }
 
 type RedisConfig struct {

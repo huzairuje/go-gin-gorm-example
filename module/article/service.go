@@ -23,6 +23,8 @@ type InterfaceService interface {
 	GetListArticle(ctx context.Context, param primitive.ParameterArticleHandler, pagination *httplib.Query) (resp []primitive.ArticleResp, count int64, err error)
 	RecordArticle(ctx context.Context, payload primitive.ArticleReq) (primitive.ArticleResp, error)
 	GetDetailArticle(ctx context.Context, articleID int64) (primitive.ArticleResp, error)
+	RecordArticleToFile(ctx context.Context)
+	LoadArticleToFile(ctx context.Context)
 }
 
 type Service struct {
@@ -31,6 +33,9 @@ type Service struct {
 }
 
 func NewService(repository RepositoryInterface, redisLib redis.LibInterface) InterfaceService {
+	if repository == nil {
+		panic("repository is not implemented!")
+	}
 	return &Service{
 		repository: repository,
 		redis:      redisLib,
@@ -224,4 +229,24 @@ func (s Service) GetDetailArticle(ctx context.Context, articleID int64) (primiti
 
 	return resp, nil
 
+}
+
+func (s Service) RecordArticleToFile(ctx context.Context) {
+	logCtx := fmt.Sprintf("service.RecordArticleToFile")
+	if !config.Conf.Postgres.EnablePostgres {
+		err := s.repository.SaveToFile("article.json")
+		if err != nil {
+			logger.Error(ctx, utils.ErrorLogFormat, err.Error(), logCtx, "s.repository.SaveToFile")
+		}
+	}
+}
+
+func (s Service) LoadArticleToFile(ctx context.Context) {
+	logCtx := fmt.Sprintf("service.LoadArticleToFile")
+	if !config.Conf.Postgres.EnablePostgres {
+		err := s.repository.LoadFromFile("article.json")
+		if err != nil {
+			logger.Error(ctx, utils.ErrorLogFormat, err.Error(), logCtx, "s.repository.LoadFromFile")
+		}
+	}
 }

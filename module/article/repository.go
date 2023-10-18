@@ -2,6 +2,7 @@ package article
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -16,6 +17,8 @@ type RepositoryInterface interface {
 	FindListArticle(ctx context.Context, param primitive.ParameterFindArticle) ([]primitive.Article, error)
 	FindArticleByID(ctx context.Context, articleID int64) (primitive.Article, error)
 	SetParamQueryToOrderByQuery(orderBy string) string
+	SaveToFile(filePath string) error
+	LoadFromFile(filePath string) error
 }
 
 type Repository struct {
@@ -29,7 +32,7 @@ func NewRepository(db *gorm.DB) *Repository {
 }
 
 func (r *Repository) CreateArticle(ctx context.Context, payload primitive.Article) (primitive.Article, error) {
-	if err := r.db.WithContext(ctx).Table("articles").Create(&payload).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table("articles").Omit("deleted_at").Create(&payload).Error; err != nil {
 		return payload, err
 	}
 	return payload, nil
@@ -103,4 +106,14 @@ func (r *Repository) FindArticleByID(ctx context.Context, articleID int64) (prim
 		return primitive.Article{}, err
 	}
 	return data, nil
+}
+
+// SaveToFile saves the articles data to a JSON file.
+func (r *Repository) SaveToFile(filePath string) error {
+	return errors.New("save To File is not implemented when database postgres is enabled")
+}
+
+// LoadFromFile loads articles data from a JSON file.
+func (r *Repository) LoadFromFile(filePath string) error {
+	return errors.New("load From File is not implemented when database postgres is enabled")
 }

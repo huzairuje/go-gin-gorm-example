@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"errors"
 	"regexp"
 	"time"
 )
 
 const (
 	ErrorLogFormat = "got err: %v, context: %s - %s"
+	ShutDownEvent  = "ShutDownEvent"
 )
 
 func IsValidSanitizeSQL(queryParam string) bool {
@@ -18,6 +20,17 @@ func Contains(elems []string, elem string) bool {
 	for _, e := range elems {
 		if elem == e {
 			return true
+		}
+	}
+	return false
+}
+
+func ContainsError(err error, errorTargetSlice []error) bool {
+	if len(errorTargetSlice) > 0 {
+		for _, errSingle := range errorTargetSlice {
+			if errors.Is(err, errSingle) {
+				return true
+			}
 		}
 	}
 	return false
